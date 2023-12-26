@@ -122,7 +122,6 @@ export class OrdersRepo {
 
       let total=0;
       for (const item of order.order_items) {
-        let stock_quantity = item.product.in_stock;
         await tx.orderItem.update({
           where: {
             id: item.id
@@ -139,7 +138,9 @@ export class OrdersRepo {
             id: item.product.id
           },
           data: {
-            in_stock: stock_quantity-item.quantity
+            in_stock: {
+              decrement: item.quantity
+            }
           }
         })
       }
@@ -155,11 +156,47 @@ export class OrdersRepo {
   }
 
   async cancelAnOrder(orderId: string) {
-    return this.prisma.order.update({
-      where: {id: orderId},
-      data: {
-        status: "CANCELLED"
-      } 
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: {
+          id: orderId
+        },
+        include: {
+          order_items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  price: true,
+                  in_stock: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      for (const item of order.order_items) {
+        await tx.product.update({
+          where: {
+            id: item.product.id
+          },
+          data: {
+            in_stock: {
+              increment: item.quantity
+            }
+          }
+        })
+      }
+
+      return this.prisma.order.update({
+        where: {id: orderId},
+        data: {
+          order_total: 0,
+          status: "CANCELLED"
+        } 
+      })
     })
   }
 
