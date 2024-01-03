@@ -19,13 +19,14 @@ export class AuthController {
 
   @Get('logout')
   async logout(@CurrentUser() user: UserDto) {
-    this.authService.logout(user.sub);
+    await this.authService.logout(user.sub);
+    return;
   }
 
   @Public()
   @UseGuards(RefreshTokenGuard)
   @Get('refresh')
-  refreshTokens(@CurrentUser() user: UserDto) {
+  async refreshTokens(@CurrentUser() user: UserDto) {
     const userId = user.sub;
     const refreshToken = user.refreshToken;
     return this.authService.refreshTokens(userId, refreshToken);
