@@ -1,16 +1,19 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { UsersService } from 'src/app/users/users.service';
+import { UsersRepo } from 'src/domain/repos/users.repo';
 
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService, private jwtService: JwtService) {}
+  constructor(
+    private usersRepo: UsersRepo,
+    private jwtService: JwtService
+  ) {}
 
   async login(username: string, password: string) {
-    const user = await this.usersService.findByUsername(username);
+    const user = await this.usersRepo.findByUsername(username);
 
     if (!user) {
       throw new NotFoundException(`No user found with username: ${username}`);
@@ -33,7 +36,7 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    return this.usersService.update(userId, { refreshToken: null });
+    return this.usersRepo.update(userId, { refreshToken: null });
   }
 
   async getAccesToken(userId: string, username: string) {
@@ -56,14 +59,14 @@ export class AuthService {
       }
     );
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 8);
-    await this.usersService.update(userId, {
+    await this.usersRepo.update(userId, {
       refreshToken: hashedRefreshToken,
     });
     return refreshToken;
   }
 
   async refreshTokens(userId: string, refreshToken: string) {
-    const user = await this.usersService.findById(userId);
+    const user = await this.usersRepo.findById(userId);
     if (!user) {
       throw new UnauthorizedException()
     };
