@@ -24,4 +24,15 @@ The prisma folder contains the schema.prisma file, where the database models are
 
 ## Description
 
-Add description
+The database schema includes models for products, order items, orders, and users (all relations are ONE-To-MANY).
+
+The API implements passport jwt strategy for access and refresh tokens for authentication. The public routes include endpoints to view the list of available products, a particular product, to sign up and to log in.
+
+The functionality used by the front end includes:
+- signing up, logging in, logging out, refreshing tokens;
+- viewing products by querying by page and optionally by category, viewing a particular product;
+- getting user's cart and orders;
+- creating an order item by adding products to cart, deleting products (order items) from cart, changing the quantity of a product [in the order item] in the cart;
+- placing an order.
+
+Pagination of the products results is done using Prisma's skip and take parameters.
