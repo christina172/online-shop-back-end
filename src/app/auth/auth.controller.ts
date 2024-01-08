@@ -17,7 +17,7 @@ export class AuthController {
     return this.authService.login(username, password);
   }
 
-  @Get('logout')
+  @Post('logout')
   async logout(@CurrentUser() user: UserDto) {
     await this.authService.logout(user.sub);
     return;
